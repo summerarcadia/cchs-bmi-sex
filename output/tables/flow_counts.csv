@@ -1,0 +1,9 @@
+step,n
+All PUMF respondents,113290
+Excluded: aged 12-17,8654
+Excluded: currently pregnant,25
+Eligible cohort (adults 18+),104611
+  of which missing outcome,313
+  of which missing BMI category (outcome known),6570
+  of which missing covariate only,5750
+Complete-case sample,91978

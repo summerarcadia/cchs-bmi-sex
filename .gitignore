@@ -1,0 +1,11 @@
+# Raw and derived microdata stay local (Statistics Canada PUMF)
+data/
+*.zip
+*.csv
+*.sas7bdat
+*.rds
+*.RData
+.Rhistory
+.Rproj.user/
+.DS_Store
+!output/**/*.csv

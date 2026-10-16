@@ -1,0 +1,13 @@
+variable,n_missing_Male,pct_missing_Male,n_missing_Female,pct_missing_Female
+htn,231,0.48,148,0.26
+dm,63,0.13,62,0.11
+hd,215,0.45,205,0.36
+cmm,159,0.33,154,0.27
+bmi_cat,2202,4.59,4416,7.79
+bmi_cat_sr,2202,4.59,4416,7.79
+bmi_adj,2202,4.59,4416,7.79
+income,45,0.09,64,0.11
+educ,1560,3.25,1643,2.9
+smoking,206,0.43,226,0.4
+alcohol,222,0.46,220,0.39
+phys_act,1380,2.88,1588,2.8
