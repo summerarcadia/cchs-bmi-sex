@@ -1,0 +1,57 @@
+variable,sex,value,Imputed,Observed
+alcohol,Male,None in past 12 mo,22,17.5
+alcohol,Male,Occasional,13.7,12.8
+alcohol,Male,Regular,64.3,69.7
+alcohol,Female,None in past 12 mo,25.7,23.3
+alcohol,Female,Occasional,20.8,20.9
+alcohol,Female,Regular,53.5,55.8
+bmi_cat,Male,Normal,28.5,27.3
+bmi_cat,Male,Obese,29.3,31.7
+bmi_cat,Male,Overweight,41.4,40.3
+bmi_cat,Male,Underweight,0.8,0.7
+bmi_cat,Female,Normal,36.1,37
+bmi_cat,Female,Obese,30.8,29.8
+bmi_cat,Female,Overweight,31.7,31.9
+bmi_cat,Female,Underweight,1.4,1.3
+dm,Male,0,86.2,88.9
+dm,Male,1,13.8,11.1
+dm,Female,0,86.8,91.8
+dm,Female,1,13.2,8.2
+educ,Male,Less than secondary,10.4,9.9
+educ,Male,Post-secondary,72.8,73.4
+educ,Male,Secondary,16.8,16.7
+educ,Female,Less than secondary,11.4,10.7
+educ,Female,Post-secondary,70.8,72.2
+educ,Female,Secondary,17.8,17.1
+hd,Male,0,84.8,92.1
+hd,Male,1,15.2,7.9
+hd,Female,0,86.4,94.1
+hd,Female,1,13.6,5.9
+htn,Male,0,72.5,76.1
+htn,Male,1,27.5,23.9
+htn,Female,0,65.3,76.9
+htn,Female,1,34.7,23.1
+income,Male,20-39k,19.8,15.4
+income,Male,40-59k,15.7,16
+income,Male,60-79k,14.4,14
+income,Male,80k+,36.7,46.6
+income,Male,<20k,13.4,7.9
+income,Female,20-39k,18.1,19.6
+income,Female,40-59k,15.6,16.6
+income,Female,60-79k,12.8,13
+income,Female,80k+,42.9,40.7
+income,Female,<20k,10.5,10.1
+phys_act,Male,0,25,22.3
+phys_act,Male,1-449,19.9,19.2
+phys_act,Male,450-899,14.9,14.7
+phys_act,Male,>=900,40.2,43.7
+phys_act,Female,0,30.1,25.8
+phys_act,Female,1-449,23.7,23.4
+phys_act,Female,450-899,15.8,17.1
+phys_act,Female,>=900,30.3,33.8
+smoking,Male,Current,15.9,21.6
+smoking,Male,Former,45.1,34.5
+smoking,Male,Never,38.9,43.8
+smoking,Female,Current,11.2,16.3
+smoking,Female,Former,32.4,27.9
+smoking,Female,Never,56.4,55.8
