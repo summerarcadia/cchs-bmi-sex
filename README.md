@@ -24,6 +24,12 @@ Rscript R/04_descriptives.R  # Table 1 and weighted prevalence
 Rscript R/05_impute.R        # multiple imputation (about 40 minutes on 8 cores)
 Rscript R/06_models.R        # survey-weighted logistic models (about 25 minutes on 8 cores)
 Rscript R/07_model_tables.R  # odds ratio tables and interaction tests
+Rscript R/08_additive.R      # RERI, AP, SI and standardized prevalence differences
+Rscript R/09_age_strata.R    # interaction by age group (about 15 minutes)
+Rscript R/10_sensitivity.R   # complete case, BMI definitions, underweight excluded (about 30 minutes)
+Rscript R/11_propensity.R    # propensity score weighting and balance plots
+Rscript R/12_evalues.R       # E-values
+Rscript R/13_additive_tables.R  # formatted Session 4 tables
 ```
 
 `R/functions.R` holds the survey design and release-rule helpers. Methods details are in `docs/methods_notes.md`.

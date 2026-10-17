@@ -130,33 +130,141 @@ fit_logit_boot <- function(dt, rw, outcome, rhs) {
     if (!f$converged) rep(NA_real_, ncol(X)) else f$beta
   }, numeric(ncol(X))))
   colnames(reps) <- colnames(X)
-  n_fail <- sum(!complete.cases(reps))
-  dev <- sweep(reps, 2, full$beta)
+  # Replicates whose fit did not converge are dropped from the variance and
+  # counted in n_fail.
+  ok <- complete.cases(reps)
+  dev <- sweep(reps[ok, , drop = FALSE], 2, full$beta)
   list(beta = setNames(full$beta, colnames(X)), reps = reps,
-       vcov = crossprod(dev, dev) / nrow(reps), n_fail = n_fail,
+       vcov = crossprod(dev, dev) / sum(ok), n_fail = sum(!ok),
        n = nrow(dt), n_patterns = nrow(g))
 }
 
 # Multiple imputation pooling ------------------------------------------------
 
+# Rubin's rules for a scalar: q and u are the per-imputation estimates and
+# within-imputation variances. With one data set (complete-case analysis) the
+# result is the complete-data estimate with a normal reference distribution.
+rubin <- function(q, u) {
+  m <- length(q)
+  if (anyNA(q) || anyNA(u)) {
+    return(data.table(est = if (anyNA(q)) NA_real_ else mean(q), se = NA_real_, df = NA_real_,
+                      lcl = NA_real_, ucl = NA_real_, p = NA_real_, fmi = NA_real_))
+  }
+  qbar <- mean(q); ubar <- mean(u)
+  b <- if (m > 1) var(q) else 0
+  tv <- ubar + (1 + 1 / m) * b
+  r <- (1 + 1 / m) * b / ubar
+  df <- if (m > 1 && b > 0) (m - 1) * (1 + 1 / r)^2 else Inf
+  se <- sqrt(tv)
+  data.table(est = qbar, se = se, df = df,
+             lcl = qbar - qt(0.975, df) * se, ucl = qbar + qt(0.975, df) * se,
+             p = 2 * pt(abs(qbar / se), df, lower.tail = FALSE),
+             fmi = if (m > 1) (r + 2 / (df + 3)) / (r + 1) else 0)
+}
+
 # Rubin's rules for linear combinations L %*% beta. `fits` is a list (one
 # element per imputation) of objects with $beta and $vcov. L is a k x p
 # matrix with column names matching the coefficients.
 pool_contrasts <- function(fits, L) {
-  m <- length(fits)
   L <- L[, names(fits[[1]]$beta), drop = FALSE]
-  q <- vapply(fits, function(f) drop(L %*% f$beta), numeric(nrow(L)))
-  u <- vapply(fits, function(f) diag(L %*% f$vcov %*% t(L)), numeric(nrow(L)))
-  if (is.null(dim(q))) { q <- matrix(q, nrow = 1); u <- matrix(u, nrow = 1) }
-  qbar <- rowMeans(q); ubar <- rowMeans(u); b <- apply(q, 1, var)
-  tv <- ubar + (1 + 1 / m) * b
-  r <- (1 + 1 / m) * b / ubar
-  df <- (m - 1) * (1 + 1 / r)^2
-  se <- sqrt(tv)
-  data.table(term = rownames(L), est = qbar, se = se, df = df,
-             lcl = qbar - qt(0.975, df) * se, ucl = qbar + qt(0.975, df) * se,
-             p = 2 * pt(abs(qbar / se), df, lower.tail = FALSE),
-             fmi = (r + 2 / (df + 3)) / (r + 1))
+  rbindlist(lapply(seq_len(nrow(L)), function(i) {
+    l <- L[i, ]
+    q <- vapply(fits, function(f) sum(l * f$beta), numeric(1))
+    u <- vapply(fits, function(f) drop(t(l) %*% f$vcov %*% l), numeric(1))
+    rubin(q, u)[, term := rownames(L)[i]]
+  }))[, c("term", "est", "se", "df", "lcl", "ucl", "p", "fmi")]
+}
+
+# Pool a nonlinear function of the coefficients. `fun` maps a matrix of
+# coefficients (rows = full sample or replicates, named columns) to a named
+# list or data.frame of measures. Within each imputation the variance is the
+# bootstrap variance of the measure across replicates around its full-sample
+# value; imputations are combined with Rubin's rules.
+pool_function <- function(fits, fun) {
+  per_imp <- lapply(fits, function(f) {
+    full <- as.data.table(fun(matrix(f$beta, nrow = 1, dimnames = list(NULL, names(f$beta)))))
+    reps <- as.data.table(fun(f$reps[complete.cases(f$reps), , drop = FALSE]))
+    v <- vapply(names(full), function(nm) mean((reps[[nm]] - full[[nm]])^2), numeric(1))
+    list(q = unlist(full), u = v)
+  })
+  nms <- names(per_imp[[1]]$q)
+  rbindlist(lapply(nms, function(nm) {
+    rubin(vapply(per_imp, function(x) x$q[[nm]], numeric(1)),
+          vapply(per_imp, function(x) x$u[[nm]], numeric(1)))[, measure := nm]
+  }))[, c("measure", "est", "se", "df", "lcl", "ucl", "p", "fmi")]
+}
+
+# Additive interaction between BMI category `b` and sex from a model with a
+# bmi_cat x sex product term (references: normal weight, male). Following
+# Knol et al. (2011) the reference is the lowest-risk group, normal-weight
+# women, so the second exposure is male sex:
+#   OR10 = overweight/obese women, OR01 = normal-weight men,
+#   OR11 = overweight/obese men, each against normal-weight women.
+# RERI = OR11 - OR10 - OR01 + 1; AP = RERI / OR11;
+# SI = (OR11 - 1) / ((OR10 - 1) + (OR01 - 1)), pooled on the log scale.
+additive_or <- function(b) {
+  bt <- paste0("bmi_cat", b); it <- paste0("bmi_cat", b, ":sexFemale")
+  function(B) {
+    or10 <- exp(B[, bt] + B[, it])
+    or01 <- exp(-B[, "sexFemale"])
+    or11 <- exp(B[, bt] - B[, "sexFemale"])
+    reri <- or11 - or10 - or01 + 1
+    # SI is undefined when its numerator or denominator is not positive; if
+    # that happens in any replicate its variance is left undefined.
+    si <- (or11 - 1) / ((or10 - 1) + (or01 - 1))
+    list(log_or10 = log(or10), log_or01 = log(or01), log_or11 = log(or11),
+         reri = reri, ap = reri / or11,
+         log_si = ifelse(si > 0, log(pmax(si, .Machine$double.xmin)), NA_real_))
+  }
+}
+
+# Model-standardized prevalence for each sex and BMI category, averaging
+# predicted probabilities over the weighted covariate distribution of the
+# whole cohort (marginal standardization). Returns, for BMI category `b`
+# against normal weight, the standardized prevalence differences in women and
+# men and their difference (women minus men), i.e. the interaction contrast
+# on the probability scale. Replicate estimates use the replicate weights for
+# both the coefficients and the standardizing distribution. `rw` holds the
+# replicate weights for the records identified by `rw_ids` (ADM_RNO); each
+# data set may be any subset of them.
+std_prevalence <- function(fits, data_list, rw, rw_ids, rhs, b, by_vars) {
+  per_imp <- lapply(seq_along(fits), function(k) {
+    f <- fits[[k]]; dt <- data_list[[k]]
+    idx <- match(dt$ADM_RNO, rw_ids)
+    stopifnot(!anyNA(idx))
+    pat <- dt[, .(grp = .GRP), by = by_vars]
+    grp <- pat[dt, on = by_vars, x.grp]
+    w_full <- rowsum(dt$WTS_M, grp, reorder = TRUE)[, 1]
+    w_rep <- rowsum(rw[idx, , drop = FALSE], grp, reorder = TRUE)
+    setorder(pat, grp)
+    scen <- CJ(sex = c("Female", "Male"), bmi = c("Normal", b), sorted = FALSE)
+    pr <- lapply(seq_len(nrow(scen)), function(i) {
+      nd <- copy(pat)
+      nd[, sex := factor(scen$sex[i], levels(dt$sex))]
+      nd[, bmi_cat := factor(scen$bmi[i], levels(dt$bmi_cat))]
+      X <- model.matrix(rhs, nd)[, names(f$beta), drop = FALSE]
+      ok <- complete.cases(f$reps)
+      full <- sum(w_full * plogis(drop(X %*% f$beta))) / sum(w_full)
+      reps <- colSums(w_rep[, ok, drop = FALSE] * plogis(X %*% t(f$reps[ok, , drop = FALSE]))) /
+        colSums(w_rep[, ok, drop = FALSE])
+      list(full = full, reps = reps)
+    })
+    names(pr) <- paste(scen$sex, scen$bmi, sep = "_")
+    get_m <- function(x) {
+      p_fn <- x[[paste0("Female_Normal")]]; p_fb <- x[[paste0("Female_", b)]]
+      p_mn <- x[[paste0("Male_Normal")]];   p_mb <- x[[paste0("Male_", b)]]
+      list(p_female_normal = p_fn, p_female_bmi = p_fb, p_male_normal = p_mn, p_male_bmi = p_mb,
+           rd_female = p_fb - p_fn, rd_male = p_mb - p_mn, rd_diff = (p_fb - p_fn) - (p_mb - p_mn))
+    }
+    full <- get_m(lapply(pr, `[[`, "full"))
+    reps <- get_m(lapply(pr, `[[`, "reps"))
+    list(q = unlist(full), u = vapply(names(full), function(nm) mean((reps[[nm]] - full[[nm]])^2), numeric(1)))
+  })
+  nms <- names(per_imp[[1]]$q)
+  rbindlist(lapply(nms, function(nm) {
+    rubin(vapply(per_imp, function(x) x$q[[nm]], numeric(1)),
+          vapply(per_imp, function(x) x$u[[nm]], numeric(1)))[, measure := nm]
+  }))[, c("measure", "est", "se", "df", "lcl", "ucl", "p", "fmi")]
 }
 
 # Multivariate Wald test pooled across imputations (D1; Li, Raghunathan and
@@ -167,11 +275,11 @@ pool_wald <- function(fits, terms) {
   if (k == 1L) q <- matrix(q, nrow = 1)
   qbar <- rowMeans(q)
   ubar <- Reduce(`+`, lapply(fits, function(f) f$vcov[terms, terms, drop = FALSE])) / m
-  b <- if (k == 1L) matrix(var(q[1, ])) else cov(t(q))
+  b <- if (m == 1) matrix(0, k, k) else if (k == 1L) matrix(var(q[1, ])) else cov(t(q))
   r <- (1 + 1 / m) * sum(diag(b %*% solve(ubar))) / k
   d1 <- drop(t(qbar) %*% solve(ubar) %*% qbar) / (k * (1 + r))
   t_ <- k * (m - 1)
-  v <- if (t_ > 4) 4 + (t_ - 4) * (1 + (1 - 2 / t_) / r)^2 else t_ * (1 + 1 / k) * (1 + 1 / r)^2 / 2
+  v <- if (m == 1) Inf else if (t_ > 4) 4 + (t_ - 4) * (1 + (1 - 2 / t_) / r)^2 else t_ * (1 + 1 / k) * (1 + 1 / r)^2 / 2
   data.table(statistic = d1, df1 = k, df2 = v, p = pf(d1, k, v, lower.tail = FALSE))
 }
 

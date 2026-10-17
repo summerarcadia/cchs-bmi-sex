@@ -1,0 +1,17 @@
+outcome,sex,bmi,or,lcl,ucl,rare_outcome,evalue,evalue_ci
+cmm,men,Overweight,1.696,1.423,2.02,TRUE,2.78,2.2
+cmm,men,Obese,3.635,3.065,4.31,TRUE,6.73,5.58
+cmm,women,Overweight,1.889,1.581,2.257,TRUE,3.18,2.54
+cmm,women,Obese,4.315,3.622,5.141,TRUE,8.1,6.7
+htn,men,Overweight,1.627,1.437,1.842,FALSE,1.87,1.69
+htn,men,Obese,3.405,3.007,3.856,FALSE,3.09,2.86
+htn,women,Overweight,1.775,1.586,1.987,FALSE,2,1.83
+htn,women,Obese,3.354,3.004,3.744,FALSE,3.07,2.86
+dm,men,Overweight,1.441,1.219,1.703,TRUE,2.24,1.74
+dm,men,Obese,3.038,2.584,3.57,TRUE,5.53,4.61
+dm,women,Overweight,2.03,1.677,2.457,TRUE,3.48,2.74
+dm,women,Obese,4.927,4.127,5.881,TRUE,9.33,7.72
+hd,men,Overweight,1.317,1.123,1.546,TRUE,1.96,1.49
+hd,men,Obese,1.74,1.475,2.053,TRUE,2.87,2.31
+hd,women,Overweight,1.13,0.953,1.34,TRUE,1.51,1
+hd,women,Obese,1.544,1.317,1.809,TRUE,2.46,1.96

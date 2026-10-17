@@ -55,6 +55,26 @@ From the CCHS 2017-2018 PUMF Quality Assurance Guidelines:
 - Multiple testing: Holm adjustment across the four global interaction tests (one per outcome); Benjamini-Hochberg q-values across the twelve category-specific ratio-of-OR tests (three BMI categories by four outcomes).
 - Estimates for a BMI category resting on fewer than 30 unweighted cases in either sex are flagged and not interpreted (applies to underweight).
 
+## Additive interaction (`R/08_additive.R`)
+
+- Odds ratio scale: relative excess risk due to interaction (RERI), attributable proportion (AP) and synergy index (SI) for overweight and for obesity, each against normal weight, from the covariate-adjusted interaction models. Following Knol et al. (2011), the reference category is the lowest-risk group, normal-weight women, so the second exposure is male sex: OR10 = women in the BMI category, OR01 = normal-weight men, OR11 = men in the BMI category, all against normal-weight women. RERI = OR11 - OR10 - OR01 + 1; AP = RERI / OR11; SI = (OR11 - 1) / ((OR10 - 1) + (OR01 - 1)).
+- Probability scale: model-standardized prevalence (marginal standardization). For each sex and BMI category, predicted probabilities from the interaction model are averaged over the survey-weighted covariate distribution of the whole cohort. Reported: the prevalence difference for the BMI category against normal weight within women and within men, and their difference (women minus men), the interaction contrast. This does not rely on odds ratios approximating risk ratios, which they do poorly for common outcomes (hypertension at 18.7%; multimorbidity at 18.8% in adults 65+).
+- Variance (method for survey data): each measure is computed from the full-sample coefficients and from each of the 1,000 bootstrap replicate coefficient vectors; for standardized prevalence the replicate weights also define the standardizing distribution. The within-imputation variance is the bootstrap variance around the full-sample value, and imputations are combined with Rubin's rules. RERI, AP and prevalence differences are pooled on their natural scale and SI on the log scale. SI is reported without a CI when its numerator or denominator is not positive in any replicate.
+
+## Age-stratified analysis (`R/09_age_strata.R`)
+
+- Interaction models refitted within 18-44, 45-64 and 65+ for multimorbidity and diabetes, adjusting for age with the finer age groups available within each stratum. Underweight excluded (0-1 multimorbidity cases at ages 18-44), using each imputation's BMI.
+- At ages 18-44 the multimorbidity reference cells hold 16 (men) and 13 (women) unweighted cases among normal-weight adults, so results for that stratum are flagged and not interpreted.
+
+## Sensitivity analyses (`R/10_sensitivity.R`, `R/11_propensity.R`)
+
+- Primary outcome only: complete cases (n = 91,978, bootstrap variance only); underweight excluded; self-reported BMI category in place of adjusted BMI; obesity split into class I (30-34.9) and class II-III (>= 35) from continuous adjusted BMI.
+- Propensity score weighting within sex: multinomial logistic propensity model for BMI category (normal, overweight, obese) on the adjustment covariates, survey weight as sampling weight, stabilized inverse probability weights for the average treatment effect (WeightIt 1.7.0). Outcome models, weighted by survey weight x propensity weight, in two forms: (a) marginal, outcome on BMI category x sex only, in which each sex's BMI contrast refers to that sex's own covariate distribution and the comparison between sexes is not covariate-adjusted; (b) doubly robust, the same plus the adjustment covariates, with prevalence standardized to the whole cohort as in the main analysis. Form (b) answers the same question as the main analysis; form (a) shows how much of the sex difference in absolute excess depends on comparing the sexes at a common covariate profile. Replicate weights are multiplied by the propensity weights, which are held fixed, so CIs do not reflect propensity model uncertainty. Balance: standardized mean differences (binary covariates standardized too), maximum across BMI category pairs, threshold 0.1 (cobalt 4.6.3); love plots from imputation 1 and maximum SMD across all 20 imputations in `propensity_balance.csv`.
+
+## E-values (`R/12_evalues.R`)
+
+- E-values (EValue 4.1.4) for each sex-specific odds ratio of overweight and obesity against normal weight. Outcomes with weighted prevalence below 15% treated as rare (odds ratio taken as risk ratio); hypertension (18.7%) converted with the square-root approximation.
+
 ## Points for later sessions
 
 - Multimorbidity among underweight adults rests on 13 men and 20 women (Table 2, not released). Odds ratios and additive interaction measures for underweight will be unstable; the additive interaction analysis should focus on overweight and obese against normal weight, with underweight reported in the models but not interpreted.
