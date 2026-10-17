@@ -22,6 +22,8 @@ Rscript R/02_cohort.R        # cohort, recodes, outcome, flow counts
 Rscript R/03_flow_diagram.R  # participant flow figure
 Rscript R/04_descriptives.R  # Table 1 and weighted prevalence
 Rscript R/05_impute.R        # multiple imputation (about 40 minutes on 8 cores)
+Rscript R/06_models.R        # survey-weighted logistic models (about 25 minutes on 8 cores)
+Rscript R/07_model_tables.R  # odds ratio tables and interaction tests
 ```
 
 `R/functions.R` holds the survey design and release-rule helpers. Methods details are in `docs/methods_notes.md`.

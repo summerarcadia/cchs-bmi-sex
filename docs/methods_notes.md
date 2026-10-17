@@ -41,7 +41,20 @@ From the CCHS 2017-2018 PUMF Quality Assurance Guidelines:
 - Diagnostics: trace plots of chain means (`output/figures/mi_trace.png`); observed against imputed distributions (`output/tables/mi_observed_vs_imputed.csv`); pooled multimorbidity prevalence with fraction of missing information (`output/tables/prevalence_cmm_mi.csv`).
 - Diagnostic results (m = 20, maxit = 10): chains mix with no trend across iterations in all strata; no logged events. Imputed values show higher condition prevalence than observed values (heart disease 15.2% vs 7.9% in men, unweighted), consistent with who is missing: 61.9% of those missing heart disease are 65 or older, against 30.8% of those with it observed. Condition data are missing for fewer than 450 adults each. Fraction of missing information for pooled multimorbidity prevalence by sex and BMI category: 0.01-0.20.
 
+## Regression models (`R/06_models.R`, `R/07_model_tables.R`)
+
+- Survey-weighted logistic regression. Primary outcome: cardiometabolic multimorbidity. Secondary outcomes: hypertension, diabetes and heart disease, each modelled separately.
+- Exposure: adjusted BMI category (reference: normal weight). Effect modifier: sex (reference: male).
+- Adjustment set, as specified in the protocol: age group (6 levels), household income (5), household education (3), smoking (3), alcohol (3), physical activity (4).
+- Two models per outcome: main effects (BMI + sex + covariates), and the same with a sex by BMI category product term.
+- Reported from the interaction model: OR for each BMI category against normal weight within men and within women; ratio of ORs (women / men) as the multiplicative interaction; OR for women against men within each BMI category; joint ORs for each sex and BMI combination against normal-weight men (`models_interaction.csv`).
+- Weights were rescaled to mean 1 before fitting, as `survey::svyglm` does; with population-scale weights the iterations otherwise fail to converge.
+- Fitting: Newton-Raphson on data collapsed to unique covariate pattern and outcome combinations, with full-sample and replicate weights summed within each pattern. This leaves the weighted likelihood unchanged. Each replicate fit starts from the full-sample estimates. Checked against `survey::svyglm` on the replicate design for the multimorbidity interaction model in one imputation: coefficients agree to 1.5e-8 and standard errors to within a ratio of 1.000002.
+- Variance: bootstrap covariance of replicate coefficients within each imputation, (1/B) Σ (b_r − b)(b_r − b)', pooled across 20 imputations with Rubin's rules and Rubin's degrees of freedom.
+- Global test of the sex by BMI interaction: pooled multivariate Wald test of the three product terms (D1; Li, Raghunathan and Rubin 1991).
+- Multiple testing: Holm adjustment across the four global interaction tests (one per outcome); Benjamini-Hochberg q-values across the twelve category-specific ratio-of-OR tests (three BMI categories by four outcomes).
+- Estimates for a BMI category resting on fewer than 30 unweighted cases in either sex are flagged and not interpreted (applies to underweight).
+
 ## Points for later sessions
 
 - Multimorbidity among underweight adults rests on 13 men and 20 women (Table 2, not released). Odds ratios and additive interaction measures for underweight will be unstable; the additive interaction analysis should focus on overweight and obese against normal weight, with underweight reported in the models but not interpreted.
-- Fitting `svyglm` with 1,000 replicates in each of 20 imputations is slow. Plan: fit each imputation's replicate models in parallel, starting each replicate fit from the full-sample coefficients.
