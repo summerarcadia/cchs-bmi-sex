@@ -50,6 +50,8 @@ output/       result tables, figures and the built documents
 data/         raw and derived microdata (not tracked)
 ```
 
-## Data licence and attribution
+## Licence
 
-Adapted from Statistics Canada, Canadian Community Health Survey, 2017-2018 Public Use Microdata File. This does not constitute an endorsement by Statistics Canada of this product. Used under the Statistics Canada Open Licence.
+Code: MIT licence (see `LICENSE`).
+
+Data: adapted from Statistics Canada, Canadian Community Health Survey, 2017-2018 Public Use Microdata File. This does not constitute an endorsement by Statistics Canada of this product. Used under the Statistics Canada Open Licence.
