@@ -30,4 +30,4 @@ Cross-sectional data show associations, not cause and effect. Weight, height and
 
 ## Data and code
 
-Statistics Canada public use microdata (Open Licence). Analysis code: [repository URL to be added]. Preprint: [link to be added].
+Statistics Canada public use microdata (Open Licence). Analysis code: https://github.com/summerarcadia/cchs-bmi-sex. Preprint: [link to be added].

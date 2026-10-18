@@ -6,6 +6,6 @@ This study used only the Canadian Community Health Survey (CCHS) 2017-2018 Publi
 
 ## Data availability statement
 
-The CCHS 2017-2018 Public Use Microdata File, its bootstrap weights and documentation are freely available from Statistics Canada (Canadian Community Health Survey: Public Use Microdata File, 2000 to 2022, catalogue 82M0013X2024001, https://www150.statcan.gc.ca/n1/pub/82m0013x/82m0013x2024001-eng.htm) under the Statistics Canada Open Licence. The author did not have access to any data beyond the public file. All analysis code is available at [repository URL to be added]. Aggregate results tables are included in the repository; the microdata are not redistributed.
+The CCHS 2017-2018 Public Use Microdata File, its bootstrap weights and documentation are freely available from Statistics Canada (Canadian Community Health Survey: Public Use Microdata File, 2000 to 2022, catalogue 82M0013X2024001, https://www150.statcan.gc.ca/n1/pub/82m0013x/82m0013x2024001-eng.htm) under the Statistics Canada Open Licence. The author did not have access to any data beyond the public file. All analysis code is available at https://github.com/summerarcadia/cchs-bmi-sex. Aggregate results tables are included in the repository; the microdata are not redistributed.
 
 Attribution required by the Statistics Canada Open Licence: Adapted from Statistics Canada, Canadian Community Health Survey, 2017-2018 Public Use Microdata File. This does not constitute an endorsement by Statistics Canada of this product.
